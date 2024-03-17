@@ -2,7 +2,7 @@
 
 Allows players to blow up a satchel charge using an incendiary bullet or fire arrow. Regardless of whether the charge is lit, doused or a dud. 
 
-With this plugin, a player could place a satchel charge on a door, douse it with a water gun to put out the fuse, then set it off remotely with a gun. Imaginative players may come up with other uses. 
+With this plugin, a player could place a satchel charge on a door, douse it with a water gun to put out the fuse, then set the charge off remotely with a gun. Imaginative players may come up with other uses. 
 
 SatchelShot also has options to relight the fuse instead of immediately detonating, and allow explosive rounds to blow up charges. 
 
