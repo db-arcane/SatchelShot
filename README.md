@@ -12,23 +12,15 @@ Default configuration:
 
 ```json
 {
-	[JsonProperty(PropertyName = "Explode On Hit")]
-	public bool explodeOnHit = true;
-
-	[JsonProperty(PropertyName = "Fuse Allows Duds")]
-	public bool allowDuds = true;
-
-	[JsonProperty(PropertyName = "Explode on Explosive Ammo")]
-	public bool allowExplosiveAmmo = false;
-
-	[JsonProperty(PropertyName = "Flame Ammo")]
-	public List<string> fireAmmo = new List<string>
-	{
-		"pistolbullet_fire (Projectile)",
-		"riflebullet_fire (Projectile)",
-		"arrow_fire (Projectile)",
-		"shotgunbullet_fire (Projectile)"
-	};
+  "Explode On Hit": true,
+  "Fuse Allows Duds": true,
+  "Explode on Explosive Ammo": false,
+  "Flame Ammo": [
+    "pistolbullet_fire (Projectile)",
+    "riflebullet_fire (Projectile)",
+    "arrow_fire (Projectile)",
+    "shotgunbullet_fire (Projectile)",
+  ]
 }
 ```
 ### Explode On Hit
