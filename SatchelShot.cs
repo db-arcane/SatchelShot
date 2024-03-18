@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SatchelShot", "db_arcane", "0.0.2")]
+    [Info("SatchelShot", "db_arcane", "1.0.3")]
     [Description("Allows players to explode satchel charges with incendiary ammo")]
     class SatchelShot : RustPlugin
     {
@@ -14,6 +14,15 @@ namespace Oxide.Plugins
 
         private class ConfigData
         {
+            [JsonProperty(PropertyName = "Explode On Hit")]
+            public bool explodeOnHit = true;
+
+            [JsonProperty(PropertyName = "Fuse Allows Duds")]
+            public bool allowDuds = true;
+
+            [JsonProperty(PropertyName = "Explode on Explosive Ammo")]
+            public bool allowExplosiveAmmo = false;
+
             [JsonProperty(PropertyName = "Flame Ammo")]
             public List<string> fireAmmo = new List<string>
             {
@@ -34,6 +43,7 @@ namespace Oxide.Plugins
             {
                 return false;
             }
+
             return true;
         }
 
@@ -74,22 +84,49 @@ namespace Oxide.Plugins
             if (!hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
                 return null;
 
-            // cast the HitEntity as an TimedExplosive. If for some reason we can't, return
-            TimedExplosive explosive = (TimedExplosive)hitInfo.HitEntity;
+            // cast the HitEntity as an DudTimedExplosive. If for some reason we can't, return
+            DudTimedExplosive explosive = (DudTimedExplosive)hitInfo.HitEntity;
             if (explosive == null)
                 return null;
 
-            // if projectile is an allowed ammo type, explode satchel charge and return false
-            // do not run default process, because target no longer exists after explosion     
+			// dummy variables for method calls
+			ItemDefinition splashType = new ItemDefinition();
+			Vector3 fromPos = new Vector3(0, 0, 0);
+
+            // if projectile is an allowed ammo type, explode satchel charge or light its fuse
             if (configData.fireAmmo.Contains(hitInfo.ProjectilePrefab.ToString()))
             {
-                explosive.Explode();
-                return false;
+                // if explodeOnHit is true, explode the satchel charge
+                if (configData.explodeOnHit)
+                {
+                    // call DoSplash() to cancel previous Explode() timer
+                    explosive.DoSplash(splashType, 0);
+                    explosive.dudChance = 0;
+                    explosive.Explode();
+                }
+                else // light the fuse
+                {
+                    explosive.DoSplash(splashType, 0);
+
+                    // if allowDuds is false, set dudChance to zero
+                    if (!configData.allowDuds)
+                        explosive.dudChance = 0;
+
+                    explosive.Ignite(fromPos);
+                    explosive.WaterCheck();
+                }
             }
             else
             {
-                return null;
+                // if projectile is an explosive .556 round and allowExplosiveAmmo is true, explode the satchel charge
+				if (configData.allowExplosiveAmmo && (hitInfo.ProjectilePrefab.ToString().Contains("riflebullet_explosive (Projectile)")))
+				{
+                    explosive.DoSplash(splashType, 0);
+                    explosive.dudChance = 0;
+                    explosive.Explode();
+				}	
             }
+            return null;
         }
     }
 }
