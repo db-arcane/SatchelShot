@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SatchelShot", "db_arcane", "1.0.3")]
+    [Info("SatchelShot", "db_arcane", "1.0.5")]
     [Description("Allows players to explode satchel charges with incendiary ammo")]
     class SatchelShot : RustPlugin
     {
@@ -70,24 +70,16 @@ namespace Oxide.Plugins
 
         object OnPlayerAttack(BasePlayer attacker, HitInfo hitInfo)
         {
-            // if no hit information, return
-            if (hitInfo == null)
+            // if HitEntity is not a satchel charge or is null, return
+            if (!(bool)hitInfo?.HitEntity?.PrefabName.Contains("satchelcharge"))
                 return null;
 
-            // if no target entity exists, return
-            // this can occur when several bullets hit the same satchel, 
-            //      which has already exploded.
-            if (hitInfo.HitEntity == null)
+            // if not hit with a projectile, return
+            if (!hitInfo.IsProjectile())
                 return null;
 
-            // if target hit was not a satchel charge, return
-            if (!hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
-                return null;
-
-            // cast the HitEntity as an DudTimedExplosive. If for some reason we can't, return
+            // cast the HitEntity as an DudTimedExplosive. 
             DudTimedExplosive explosive = (DudTimedExplosive)hitInfo.HitEntity;
-            if (explosive == null)
-                return null;
 
 			// dummy variables for method calls
 			ItemDefinition splashType = new ItemDefinition();
