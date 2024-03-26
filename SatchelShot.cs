@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SatchelShot", "db_arcane", "1.0.5")]
+    [Info("SatchelShot", "db_arcane", "1.0.6")]
     [Description("Allows players to explode satchel charges with incendiary ammo")]
     class SatchelShot : RustPlugin
     {
@@ -70,8 +70,13 @@ namespace Oxide.Plugins
 
         object OnPlayerAttack(BasePlayer attacker, HitInfo hitInfo)
         {
-            // if HitEntity is not a satchel charge or is null, return
-            if (!(bool)hitInfo?.HitEntity?.PrefabName.Contains("satchelcharge"))
+
+			      // if hitInfo or HitEntity are null, return
+			      if (hitInfo?.HitEntity == null)
+				        return null;
+			
+            // if HitEntity is not a satchel charge, return
+            if (!hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
                 return null;
 
             // if not hit with a projectile, return
@@ -105,7 +110,7 @@ namespace Oxide.Plugins
                         explosive.dudChance = 0;
 
                     explosive.Ignite(fromPos);
-                    explosive.WaterCheck();
+					explosive.WaterCheck();
                 }
             }
             else
