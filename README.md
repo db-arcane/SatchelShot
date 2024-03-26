@@ -4,7 +4,7 @@ Allows players to blow up a satchel charge using an incendiary bullet or fire ar
 
 With this plugin, a player could place a satchel charge on a door, douse it with a water gun to put out the fuse, then set the charge off remotely with a gun. Imaginative players may come up with other uses. 
 
-SatchelShot also has options to relight the fuse instead of immediately detonating, and allow explosive rounds to blow up charges. 
+SatchelShot has options to relight the fuse instead of exploding immediately, and to allow explosive rounds to blow up the charge.
 
 ## Configuration
 
@@ -14,18 +14,18 @@ Default configuration:
 {
   "Explode On Hit": true,
   "Fuse Allows Duds": true,
-  "Explode on Explosive Ammo": false,
+  "Explode on Explosive Ammo": true,
   "Flame Ammo": [
     "pistolbullet_fire (Projectile)",
     "riflebullet_fire (Projectile)",
     "arrow_fire (Projectile)",
-    "shotgunbullet_fire (Projectile)",
+    "shotgunbullet_fire (Projectile)"
   ]
 }
 ```
 ### Explode On Hit
 
-- `Explode On Hit` -- If true, blow up the satchel charge. If false, relight the fuse. Default value is true (explode).
+- `Explode On Hit` -- If true, blow up the satchel charge. If false, relight the fuse instead. Default value is true (explode).
 
 ### Fuse Allows Duds
 

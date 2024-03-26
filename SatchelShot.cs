@@ -70,9 +70,10 @@ namespace Oxide.Plugins
 
         object OnPlayerAttack(BasePlayer attacker, HitInfo hitInfo)
         {
-			// if hitInfo or HitEntity are null, return
-			if (hitInfo?.HitEntity == null)
-				return null;
+
+			      // if hitInfo or HitEntity are null, return
+			      if (hitInfo?.HitEntity == null)
+				        return null;
 			
             // if HitEntity is not a satchel charge, return
             if (!hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
