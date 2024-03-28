@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using ConVar;
+using Network;
+using System;
+using UnityEngine;
+using UnityEngine.Assertions;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Oxide.Core;
-using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SatchelShot", "db_arcane", "1.0.6")]
+    [Info("SatchelShot", "db_arcane", "1.0.7")]
     [Description("Allows players to explode satchel charges with incendiary ammo")]
     class SatchelShot : RustPlugin
     {
@@ -31,6 +35,10 @@ namespace Oxide.Plugins
                 "arrow_fire (Projectile)",
                 "shotgunbullet_fire (Projectile)"
             };
+
+            [JsonProperty(PropertyName = "Explode Timed Explosive")]
+            public bool explodeTimedExplosive = false;
+
         }
 
         private bool LoadConfigVariables()
@@ -70,59 +78,82 @@ namespace Oxide.Plugins
 
         object OnPlayerAttack(BasePlayer attacker, HitInfo hitInfo)
         {
-
-			      // if hitInfo or HitEntity are null, return
-			      if (hitInfo?.HitEntity == null)
-				        return null;
-			
-            // if HitEntity is not a satchel charge, return
-            if (!hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
+            // if hitInfo or HitEntity are null, return
+            if (hitInfo?.HitEntity == null)
                 return null;
 
             // if not hit with a projectile, return
             if (!hitInfo.IsProjectile())
                 return null;
 
-            // cast the HitEntity as an DudTimedExplosive. 
-            DudTimedExplosive explosive = (DudTimedExplosive)hitInfo.HitEntity;
+            // dummy variables for method calls
+            ItemDefinition splashType = new ItemDefinition();
+            Vector3 fromPos = new Vector3(0, 0, 0);
 
-			// dummy variables for method calls
-			ItemDefinition splashType = new ItemDefinition();
-			Vector3 fromPos = new Vector3(0, 0, 0);
-
-            // if projectile is an allowed ammo type, explode satchel charge or light its fuse
-            if (configData.fireAmmo.Contains(hitInfo.ProjectilePrefab.ToString()))
+            // if HitEntity is a satchel charge 
+            if (hitInfo.HitEntity.PrefabName.Contains("satchelcharge"))
             {
-                // if explodeOnHit is true, explode the satchel charge
-                if (configData.explodeOnHit)
-                {
-                    // call DoSplash() to cancel previous Explode() timer
-                    explosive.DoSplash(splashType, 0);
-                    explosive.dudChance = 0;
-                    explosive.Explode();
-                }
-                else // light the fuse
-                {
-                    explosive.DoSplash(splashType, 0);
+                // cast the HitEntity as an DudTimedExplosive. 
+                DudTimedExplosive explosive = (DudTimedExplosive)hitInfo.HitEntity;
 
-                    // if allowDuds is false, set dudChance to zero
-                    if (!configData.allowDuds)
+                // if projectile is an allowed ammo type, explode satchel charge or light its fuse
+                if (configData.fireAmmo.Contains(hitInfo.ProjectilePrefab.ToString()))
+                {
+                    // if explodeOnHit is true, explode the satchel charge
+                    if (configData.explodeOnHit)
+                    {
+                        // call DoSplash() to cancel previous Explode() timer
+                        explosive.DoSplash(splashType, 0);
                         explosive.dudChance = 0;
+                        explosive.Explode();
+                    }
+                    else // light the fuse
+                    {
+                        // if allowDuds is false, set dudChance to zero
+                        if (!configData.allowDuds)
+                            explosive.dudChance = 0;
 
-                    explosive.Ignite(fromPos);
-					explosive.WaterCheck();
+                        explosive.DoSplash(splashType, 0);
+                        explosive.SetFuse(explosive.GetRandomTimerTime());
+                    }
                 }
+                else
+                {
+                    // if projectile is an explosive .556 round and allowExplosiveAmmo is true, explode the satchel charge
+                    if (configData.allowExplosiveAmmo && (hitInfo.ProjectilePrefab.ToString().Contains("riflebullet_explosive (Projectile)")))
+                    {
+                        explosive.dudChance = 0;
+                        explosive.DoSplash(splashType, 0);
+                        explosive.Explode();
+                    }
+                }
+                return null;
             }
-            else
+
+            // if HitEntity is a c4 and explodeTimedExplosive is true
+            if (hitInfo.HitEntity.PrefabName.Contains("explosive.timed") && configData.explodeTimedExplosive)
             {
-                // if projectile is an explosive .556 round and allowExplosiveAmmo is true, explode the satchel charge
-				if (configData.allowExplosiveAmmo && (hitInfo.ProjectilePrefab.ToString().Contains("riflebullet_explosive (Projectile)")))
-				{
-                    explosive.DoSplash(splashType, 0);
-                    explosive.dudChance = 0;
-                    explosive.Explode();
-				}	
+                // cast HitEntity as RFTimedExplosive
+                RFTimedExplosive explosive = (RFTimedExplosive)hitInfo.HitEntity;
+
+                // if projectile is an allowed ammo type, or it's an explosive .556 round and allowExplosiveAmmo is true
+                if (configData.fireAmmo.Contains(hitInfo.ProjectilePrefab.ToString()) ||
+                        configData.allowExplosiveAmmo && (hitInfo.ProjectilePrefab.ToString().Contains("riflebullet_explosive (Projectile)")))
+                {
+                    // if RFFrequency is set, set it to 0 and stop any scheduled explosion
+                    if (explosive.GetFrequency() > 0)
+                    {
+                        if (explosive.IsInvoking(new Action(((TimedExplosive)explosive).Explode)))
+                            explosive.CancelInvoke(new Action(((TimedExplosive)explosive).Explode));
+
+                        explosive.SetFrequency(0);
+                    }
+                    explosive.SetFuse(0f);
+                }
+                return null;
             }
+
+            // otherwise, 
             return null;
         }
     }
