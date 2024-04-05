@@ -4,7 +4,7 @@ The SatchelShot plugin allows players to blow up a satchel charge using an incen
 
 With this plugin, a player could place a satchel charge on a door, douse it with a water gun to put out the fuse, then set the charge off remotely with a gun. Imaginative players may come up with other uses. 
 
-SatchelShot has options to relight the fuse instead of exploding immediately, and to allow explosive rounds to blow up the charge.
+SatchelShot has options to relight the fuse instead of exploding immediately, allow explosive rounds to blow up a charge, and allow timed explosive charges (C4) to also be blown up. 
 
 ## Configuration
 
